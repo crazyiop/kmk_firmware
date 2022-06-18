@@ -79,6 +79,41 @@ class KMKKeyboard:
     # real known fix yet other than turning off debug, but M4s have always been
     # tight on RAM so....
     def __repr__(self) -> str:
+        r = 'KMKKeyboard(\n'
+        r += f'  hid_pending={self.hid_pending}, '
+        r += f'_hid_helper={self._hid_helper},\n'
+        r += f'  active_layers={self.active_layers}, '
+        r += f'_timeouts={self._timeouts},\n'
+        for attrname in [
+                'keys_pressed',
+                '_coordkeys_pressed',
+        ]:
+            attr = getattr(self, attrname)
+            if len(attr) <=1:
+                r+= f'  {attrname}={attr},\n'
+            else:
+                if isinstance(attr, dict):
+                    r += f'  {attrname}={{\n'
+                    for k,v in attr.items():
+                        r += f'    {k}: {v},\n'
+                    r += '  },\n'
+                elif isinstance(attr, list):
+                    r += f'  {attrname}=[\n'
+                    for k in attr:
+                        r += f'    {k},\n'
+                    r += '  ],\n'
+                elif isinstance(attr, set):
+                    r += f'  {attrname}={{\n'
+                    for k in attr:
+                        r += f'    {k},\n'
+                    r += '  },\n'
+                else:
+                    print(attr, type(attr))
+                    raise NotImplementedError
+        r += ')'
+        return r
+
+    def __repr__(self):
         return ''.join(
             [
                 'KMKKeyboard(\n',
@@ -98,8 +133,32 @@ class KMKKeyboard:
 
     def _print_debug_cycle(self, init: bool = False) -> None:
         if debug.enabled:
-            debug(f'coordkeys_pressed={self._coordkeys_pressed}')
-            debug(f'keys_pressed={self.keys_pressed}')
+            for attrname in [
+                    'keys_pressed',
+                    '_coordkeys_pressed',
+            ]:
+                attr = getattr(self, attrname)
+                if len(attr) <=1:
+                    debug(f'  {attrname}={attr}')
+                else:
+                    if isinstance(attr, dict):
+                        debug(f'{attrname}='+'{')
+                        for k,v in attr.items():
+                            debug(f'  {k}: {v}')
+                        debug('}')
+                    elif isinstance(attr, list):
+                        debug(f'{attrname}=[')
+                        for k in attr:
+                            debug(f'  {k}')
+                        debug(']')
+                    elif isinstance(attr, set):
+                        debug(f'{attrname}='+'{')
+                        for k in attr:
+                            debug(f'  {k}')
+                        debug('}')
+                    else:
+                        print(attr, type(attr))
+                        raise NotImplementedError
 
     def _send_hid(self) -> None:
         if self._hid_send_enabled:
