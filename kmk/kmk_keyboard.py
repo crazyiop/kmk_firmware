@@ -3,7 +3,7 @@ try:
 except ImportError:
     pass
 
-from supervisor import ticks_ms
+from supervisor import ticks_ms, runtime
 
 from collections import namedtuple
 from keypad import Event as KeyEvent
@@ -161,13 +161,9 @@ class KMKKeyboard:
                         raise NotImplementedError
 
     def _send_hid(self) -> None:
-        if self._hid_send_enabled:
+        if self._hid_send_enabled and runtime.usb_connected:
             hid_report = self._hid_helper.create_report(self.keys_pressed)
-            try:
-                hid_report.send()
-            except KeyError as e:
-                if debug.enabled:
-                    debug(f'HidNotFound(HIDReportType={e})')
+            hid_report.send()
         self.hid_pending = False
 
     def _handle_matrix_report(self, kevent: KeyEvent) -> None:
